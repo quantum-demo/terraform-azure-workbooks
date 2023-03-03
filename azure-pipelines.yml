@@ -1,0 +1,36 @@
+trigger:
+  batch: true
+  branches:
+    include:
+      - master
+      - feature/*
+      - fix/*
+
+pr: none
+
+schedules:
+- cron: "0 11 1,15 * *"
+  displayName: Twice a month deploy (1st & 15th)
+  branches:
+    include:
+      - master
+      - main
+  always: true
+
+resources:
+  repositories:
+    - repository: pipeline-library
+      type: github
+      endpoint: quantum-sec-github
+      name: quantum-sec/pipeline-library
+
+jobs:
+  - template: templates/jobs/terraform.yml@pipeline-library
+    parameters:
+      containerImage: quantumci.azurecr.io/quantum-ci-terragrunt:latest
+      runFunctionalTests: false
+      buildSteps:
+        - script: npm run build
+          name: RunTsc
+          displayName: Run tsc
+          condition: succeeded()
